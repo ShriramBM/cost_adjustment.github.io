@@ -1,6 +1,438 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cost Adjustment</title>
+ 
+    <style>
+        .sub{
+            width: 200px;
+            padding: 20px;
+            background: #000;
+            color: white;
+            font-size: x-large;
+        }
+        .sub:hover,
+        #done:hover{
+            background: orange;
+                    
+        }
+        .done{
+            font-size: larger;
+        }
 
-<body>
-<h1>Hello World</h1>
-</body>
-</htm>
+    </style>
+  </head>
+  <body>
+    <div id="whole">
+    <h1>Welcome to pridiction application for Cost Adjustment</h1>
+    <hr />
+
+    
+    <div id="user">
+    <h2>Ticket Details</h2>
+      <label>FUND ID or CLIENT ACCT:</label><input id="fund_id" />
+      <br><br>
+      <label >CUSIP: </label><input id="cusip" >
+      <br /><br>
+      <label>Which Month: for previous month input 0 or current month input 1: </label><input id="month" />
+      <br /><br>
+      <label >Which Security Costing for Average costing input 1 for ID costing 2 if Not provided 0: </label></label><input id="costing" />
+      <br /> <br/>
+      <label >Cost Adjustment amount input amount or input 0 to remove adjustment:</label><input id="adjustment">
+      <button onclick="adjustmentClarity()">clarity</button>
+        <br><br>
+        <label ></label>
+      <br>
+      <button class="sub" onclick="ticketDetails()">submit</button>
+    </div>
+
+
+    <div id="main_thing" style="display: none;">
+        <h2>Check the Security Costing method <button id="done" onclick="bcmcDone()">DONE</button></h2>
+        <hr>
+
+        <div id="BCMC">
+            <h3>BCMC SCREEN</h3>    
+            <ul>
+                <li>
+                    <label>SECURITY COSTING: if (A) input 1 , if (I) input 2: </label><input type="text" id="bcmc_costing">
+                    <button onclick="details(1)">Check Detailed Description</button>
+                </li>
+            </ul>
+
+        </div>
+        <div id="detail1" style="display: none;">
+            Details
+        </div>
+        <hr>
+    </div>
+
+    <div id="browse" style="display: none;">
+        <!-- Previous month steps  -->
+        <h2>Browse to Given Screen and Check Position <button id="done" onclick="browseDone()">DONE</button></h2></h2>
+
+        <hr>
+        <!-- BPOP -->
+        <div id="BPOP">
+            <h3>1) BPOP SCREEN <button onclick="details(2)">Check Detailed Description</button></h3>    
+            <ul>
+                <li>
+                    <label>LONG POSITION: </label><input type="text" id="bpop_long_pos">
+                </li>
+                <li>
+                    <label>SHORT_POSTION: </label><input type="text"  id="bpop_short_pos">
+                </li>
+            </ul>
+            
+            <div id="detail2" style="display: none;">
+                Details2
+            </div>
+        </div>
+        <!-- BRFD -->
+        <br>
+        <div id="BRFD">
+            <h3>2) BRFD SCREEN <button onclick="details(3)">Check Detailed Description</button></h3>
+            <ul>
+                <li>
+                    <label>LONG POSITION: </label><input type="text" id="brfd_long_pos">
+                </li>
+            </ul>
+            <div id="detail3" style="display: none;">
+                Details3
+            </div>
+        </div>
+        <br>
+
+        <!-- BGMM -->
+        <div id="BGMM">
+            <h3>3) BGMM SCREEN <button onclick="details(4)">Check Detailed Description</button></h3>
+            <ul>
+                <li>
+                    <label>IF STA is C input 0 otherwise Input PAR VALUE in BGMM: </label><input type="text" id="bgmm_par">
+                </li>
+            </ul>
+            <div id="detail4" style="display: none;">
+                Details4
+            </div>
+        </div>
+        <br>
+        <!-- BPMM -->
+        <div id="BPMM">
+            <h3>4) BPMM SCREEN <button onclick="details(5)">Check Detailed Description</button></h3>
+            <ul>
+                <li>
+                    <label>IF BPMM record not found input 0 otherwise input SHR/QTY: in BPMM: </label><input type="text" id="bpmm_shr">
+                </li>
+            </ul>
+            <div id="detail5" style="display: none;">
+                Details5
+            </div>
+        </div>
+
+
+
+        <br>
+        <div id="previous_month" style="display: none;">
+
+        <!-- BRMP -->
+        <div id="BRMP">
+            <h3>5) BRMP SCREEN <button onclick="details(6)">Check Detailed Description</button></h3>
+            <ul>
+                <li>
+                    <label>LONG POSITION: </label><input type="text" id="brmp_long_pos">
+                </li>
+            </ul>
+            <div id="detail6" style="display: none;">
+                Details6
+            </div>
+        </div>
+            
+        </div>
+
+        <hr>
+    </div>
+
+    <div id="back_up" style="display: none;">
+        <h2>The Adjustment Amount is more then 1000$ so we Need BACK UP</h2>
+        <button onclick="aboveDoller(true)">Provided </button>
+        <button onclick="aboveDoller(false)">Not Provided</button>
+
+
+    </div>
+
+    <div id="modify" style="display: none;">
+        modify
+    </div>
+
+</div>
+    <script>
+
+    
+    //ticket details 
+     let user;
+
+    //  operational details
+    let browsing_operation = {
+        bpop_postion:false,
+        brfd_postion:false,
+        brmp_postion:false,
+        bgmm_check:false,
+        bpmm_shr_qty:false
+    };
+
+    // Reason for not Modifying 
+    let reason;
+
+    // After deciding which costing method is best
+    let final_costing;
+
+    //  adjustment deatils
+     let adjustmentClarity=()=>{
+        alert("input user given amount \nif it is to decrement give negative value ex: -1324\nif it is to increment give postive value ex:2341\n if it to remove the cost value give 0  ")
+     }
+
+
+
+    //  User ticket details
+      let ticketDetails = () => {
+        let temp_user={};
+        temp_user.fund = document.getElementById("fund_id").value;
+        temp_user.cusip = document.getElementById("cusip").value;
+        temp_user.month = document.getElementById("month").value;
+        temp_user.costing = document.getElementById("costing").value;
+        temp_user.adjustment = document.getElementById("adjustment").value;
+        
+        if(temp_user.costing == ""|| temp_user.cusip == ""|| temp_user.adjustment == ""|| temp_user.month== "" || temp_user.fund=="")
+        {
+            alert("fill all detail\nRequrements not met");
+
+        }
+        else{
+            user = temp_user;
+            document.getElementById('user').style.display = 'none';
+            document.getElementById('main_thing').style.display ="block";
+        }
+      };
+      
+    // Check in details
+    let details = (para)=>{
+        let dis = document.getElementById("detail"+para).style.display;
+        if(dis === 'none')
+            document.getElementById("detail"+para).style.display ="block";
+        else 
+            document.getElementById("detail"+para).style.display = "none";
+    }
+    
+
+    // Main Condition satisfaction
+    let bcmcDone = ()=>{
+        let bcmc_screen_cost = document.getElementById('bcmc_costing').value;
+        if(bcmc_screen_cost == '') alert("PLease provide Costing Value");
+
+
+        else{
+            if(user.costing == 0){
+                final_costing = bcmc_screen_cost;
+
+                document.getElementById('main_thing').style.display = "none";
+                document.getElementById('browse').style.display = "block";
+                if(user.month == 0) {
+                    
+                    document.getElementById('previous_month').style.display = "block";
+                }
+            }
+            else if(user.costing == bcmc_screen_cost){
+                final_costing = bcmc_screen_cost;
+
+                document.getElementById('main_thing').style.display = "none";
+                document.getElementById('browse').style.display = "block";
+                if(user.month == 0) {
+                    
+                    document.getElementById('previous_month').style.display = "block";
+                }
+            }
+            else if(user.costing != bcmc_screen_cost){
+                final_costing = user.costing;
+
+                document.getElementById('main_thing').style.display = "none";
+                document.getElementById('modify').style.display = "block";
+            }
+
+        }
+    }
+    
+    // browsing solution check
+    let browseDone = ()=>{
+
+        let take_action;
+ 
+
+        let temp_browse_check={};
+        temp_browse_check.bpop_log_pos = document.getElementById("bpop_long_pos").value;
+        temp_browse_check.bpop_short_pos = document.getElementById("bpop_short_pos").value;
+       
+        temp_browse_check.brfd_postion = document.getElementById("brfd_long_pos").value;
+        
+        temp_browse_check.bgmm_check = document.getElementById("bgmm_par").value;
+
+        temp_browse_check.bpmm_shr_qty = document.getElementById("bpmm_shr").value;
+
+        temp_browse_check.brmp_postion = document.getElementById("brmp_long_pos").value;
+
+        if(user.month == 0) {
+
+            if(
+                temp_browse_check.bpop_log_pos == '' ||
+                temp_browse_check.bpop_short_pos == '' ||
+                temp_browse_check.brfd_postion ==''||
+                temp_browse_check.bgmm_check ==''||
+                temp_browse_check.bpmm_shr_qty ==''||    
+                temp_browse_check.brmp_postion == ''               
+            ){
+                alert("please Properly fill the SCREEN, Dont leave Blank");
+                return;
+            }
+            else{
+               take_action = previousMonthCheck(temp_browse_check);
+            }
+
+        }
+        else{
+            if(
+                temp_browse_check.bpop_log_pos == '' ||
+                temp_browse_check.bpop_short_pos == '' ||
+                temp_browse_check.brfd_postion ==''||
+                temp_browse_check.bgmm_check ==''||
+                temp_browse_check.bpmm_shr_qty ==''               
+            ){
+            
+                alert("please Properly fill the SCREEN, Dont leave Blank");
+                return;
+            }
+            else{
+                take_action = currentMonthCheck(temp_browse_check);
+            }
+            
+        }
+
+        if(take_action){
+            if(user.adjustment>1000 || user.adjustment<-1000){
+                document.getElementById('browse').style.display = "none";
+                document.getElementById('back_up').style.display = "block";
+
+            }
+
+            else{
+                document.getElementById('browse').style.display = "none";
+                document.getElementById('modify').style.display = "block";
+            }
+
+            
+        }
+        else{
+            alert(reason);
+        }
+
+
+    }
+    
+
+    let previousMonthCheck = (data)=>{
+
+        if(parseInt(data.bpop_log_pos)==0 || parseInt(data.bpop_short_pos)==0) {
+            console.log("satisfy BPOP");
+        }
+        else{
+            reason = "BPOP POSITION have some Value";
+            return false;
+        }
+
+        if(parseInt(data.brfd_postion) == 0){
+            console.log("satisfy BRFD");
+        }
+        else{
+            reason = "BRFD LOG_POSITION have some Value";
+            return false;
+        }
+
+        if(parseInt(data.bgmm_check) == 0){
+            console.log("satisfy BGMM")   
+        }
+        else{
+            reason = "BGMM PAR VALUE have some Value";
+            return false;
+        }
+
+        if(parseInt(data.bpmm_shr_qty) == 0){
+            console.log("Satisfy BPMM");
+        }  
+        else{
+            reason = "BPMM SHR/QTY have some Value";
+            return false;
+        }
+
+        if(parseInt(data.brmp_postion) == 0){
+            console.log("Satisfy BRMP");
+        }
+        else{
+            reason = "BRMP LONG POSITION have some value";
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+    let currentMonthCheck = (data)=>{
+        if(parseInt(data.bpop_log_pos)==0 || parseInt(data.bpop_short_pos)==0) {
+            console.log("satisfy BPOP");
+        }
+        else{
+            reason = "BPOP POSITION have some Value";
+            return false;
+        }
+
+        if(parseInt(data.brfd_postion) == 0){
+            console.log("satisfy BRFD");
+        }
+        else{
+            reason = "BRFD LOG_POSITION have some Value";
+            return false;
+        }
+
+        if(parseInt(data.bgmm_check) == 0){
+            console.log("satisfy BGMM")   
+        }
+        else{
+            reason = "BGMM PAR VALUE have some Value";
+            return false;
+        }
+
+        if(parseInt(data.bpmm_shr_qty) == 0){
+            console.log("Satisfy BPMM");
+        }  
+        else{
+            reason = "BPMM SHR/QTY have some Value";
+            return false;
+        }
+
+        return true;
+
+    }
+
+    let aboveDoller = (para)=>{
+        if(para){
+            document.getElementById('modify').style.display = "block";
+        }
+        else{
+            alert("You should ASk for Back to Adjust");
+            document.getElementById('whole').style.display = "none";
+        }
+    }
+    </script>
+  </body>
+</html>
